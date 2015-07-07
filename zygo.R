@@ -23,12 +23,25 @@ if ( !is.null(opt$help) || is.null(opt$landmarks) || is.null(opt$skull) ) {
        q(status=1);
    }
 
+right <- FALSE
 skulllm <- read.pts(opt$landmarks)
 modlm <- read.pts("data/zlmr.pts")
-refchk <- rotonto(skulllm,modlm)$reflect
-right <- FALSE
-if (refchk)
+modlmmirr <- mirror(modlm)
+##get references
+lmleft <- pcAlign(skulllm,modlm,iterations = 100)
+lmright <-  pcAlign(skulllm,modlmmirr,iterations = 100)
+##get associations
+leftkd <- vcgKDtree(lmleft,modlm,k=1)
+rightkd <- vcgKDtree(lmright,modlmmirr,k=1)
+##use the config with the lower distance
+if (mean(leftkd$distance) < mean(rightkd$distance)){
+    skulllm <- skulllm[leftkd$index,]
+} else {
+    skulllm <- skulllm[rightkd$index,]
     right <- TRUE
+    cat("using righthand model\n")
+}
+
 
 if (right) {
     cat("using right hand model\n")

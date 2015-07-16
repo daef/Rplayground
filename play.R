@@ -18,7 +18,7 @@ representer = vcgImport(paste0("ply/",landmarks$idnames[1]))
 modellm = landmarks$arr[,,landmarks$idnames[1]]
 
 if(!exists("model")) {
-    model = statismoModelFromPrepresenter(representer=representer,kernel=list(c(50,50)),ncomp=123)
+    model = statismoModelFromRepresenter(representer=representer,kernel=list(c(50,50)),ncomp=231)
 } else {
     print("reusing existing model")
 }
@@ -47,8 +47,12 @@ registerfun = function(i) {
     targetlm = landmarks$arr[,,targetname]
     transformation = computeTransform(modellm, targetlm, type="r")
     targetrot = applyTransform(target, transformation)
+    targetlmrot = applyTransform(targetlm, transformation)
     
+    cmodel = statismoConstrainModel(model, targetlmrot, modellm, ptValueNoise=2)
+    fit <- modelFitting(cmodel, targetrot, tardist=3,refdist=6,iterations=50,sdmax=4,mahaprob="c",lbfgs.iter=15)
 
+    vtkMeshWrite(fit$mesh, paste0("out/",targetname))
 
     print(paste("done w/",landmarks$idnames[i]))
 }
